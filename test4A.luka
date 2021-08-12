@@ -1,0 +1,46 @@
+// Test 4 for the luka coding language
+
+// printing boolean values
+
+print(true);
+
+val boolean = true;
+
+print(boolean);
+
+val boolean = false;
+
+print(boolean);
+
+// type specifications and checking also works
+
+val x: int = 5;
+val y: bool = true;
+
+// spacing also works
+val space   :  bool     =    true;
+val tiny:int=1;
+
+// should fail if it is the wrong type
+// val oof: int = true;
+
+// should fail because booleans aren't allowed in expressions
+// val fail = boolean + 2;
+
+// can nest type checking
+val z: int = x + 5 - tiny - x;
+print(x);
+print(z - 4);
+
+// type checking works with voids as well
+// these should all fail
+// val a = print(5);
+// val b: void = print(5);
+// val c = val d: = 4;
+// val e: void = 5;
+
+// test for assembly add and sub
+val one: int = 5;
+val two: int = 5;
+val res: int = one + two;
+val res2: int = one - two;

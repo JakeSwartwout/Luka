@@ -1,0 +1,30 @@
+// Test 3 for the luka coding language
+
+val x = 0;
+val   y     =   1  ;
+val z=2;
+
+// we can overwrite values
+val x = 10;
+
+// this should fail for now because we don't yet support ==, rather than because it finds the wrong =
+// val bool = 1 == 1;
+
+// this should fail because value assignment doesn't return anything
+// val ret = val sub = 1;
+
+// try accessing a value we set
+print(x);
+print(y);
+print(z);
+
+// overwriting then printing gives different results only after the reassignment
+val x = 15;
+print(x);
+
+// can set values to the results of equations
+val plus = 1 + 2;
+val minus = plus - 3;
+val zero = minus;
+
+print(zero);

@@ -1,0 +1,26 @@
+
+
+// This test covers several main components of the Luka coding language:
+// Lines starting with "//" should be comments
+
+  // whitespace and empty lines should be ignored
+  
+// printing an integer should do exactly that
+print(5)
+// lines can either end in a semicolon or not (without will give a warning)
+print(6);
+// there can be semicolons (with or without spaces) in the middle to put multiple commands on one line
+print(7);print(8); print(9)
+// again, these still are able to end in a semicolon or not
+print(10); print(11);
+// they should perform operations in the expected order
+print(6+7)
+// throwing errors for wrong ordered items
+// print(6) + print(7); // should be an error
+// and make sure the print function isn't empty (to do an empty line, just print(0))
+// print() // should be a syntax error, wrong insides
+// and addition should be okay with spaces
+print(1 + 1);
+print(2+ 2);
+print(3 +3);
+print(4+4);

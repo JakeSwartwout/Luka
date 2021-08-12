@@ -1,0 +1,5 @@
+output/*
+.ipynb_checkpoints/*
+__pycache__
+Verilog - Single Cycle/*
+Python Notes.ipynb

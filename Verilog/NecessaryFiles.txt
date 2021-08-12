@@ -1,0 +1,17 @@
+Processor.sv
+inputs.vh
+Stages/stg_1_IF.sv
+Stages/stg_2_ID.sv
+Stages/stg_3_EX.sv
+Stages/stg_4_ME.sv
+Stages/stg_5_WB.sv
+Specs/specs.vh
+Specs/opcodes.vh
+Specs/enums.vh
+Helpers/bin2bcd.sv
+Helpers/clockDivider.sv
+Helpers/instructionDecoder.sv
+Helpers/registerFile.sv
+Helpers/sevenSegToValue.sv
+Helpers/valueToDisplay.sv
+Helpers/valueToSevenSeg.sv
