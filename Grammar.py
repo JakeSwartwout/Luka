@@ -219,6 +219,18 @@ class Program():
 
 
 
+def merge_2_subclasses(clas, sub1, sub2):
+    classes = set([clas])
+    sub_classes1 = sub1.classes_used()
+    for sub in sub_classes1:
+        classes.add(sub)
+    sub_classes2 = sub2.classes_used()
+    for sub in sub_classes2:
+        classes.add(sub)
+    return classes
+
+
+
 class Command(ABC):
     """
     the base Command class for all others to inherit from
@@ -464,14 +476,7 @@ class Add(Expression):
         return Integer, new_env
     
     def classes_used(self):
-        classes = set([Add])
-        sub_classes1 = self.v1.classes_used()
-        for sub in sub_classes1:
-            classes.add(sub)
-        sub_classes2 = self.v2.classes_used()
-        for sub in sub_classes2:
-            classes.add(sub)
-        return classes
+        return merge_2_subclasses(Add, self.v1, self.v2)
 def add_validate(string):
     # @input string: the string to check if it's valid
     # @return boolean: whether it is valid under this Spec or not
@@ -515,14 +520,7 @@ class Sub(Expression):
         return Integer, new_env
     
     def classes_used(self):
-        classes = set([Sub])
-        sub_classes1 = self.v1.classes_used()
-        for sub in sub_classes1:
-            classes.add(sub)
-        sub_classes2 = self.v2.classes_used()
-        for sub in sub_classes2:
-            classes.add(sub)
-        return classes
+        return merge_2_subclasses(Sub, self.v1, self.v2)
 def sub_validate(string):
     # @input string: the string to check if it's valid
     # @return boolean: whether it is valid under this Spec or not
@@ -675,8 +673,10 @@ class Comparison(BooleanExpression):
         assert isinstance(v2, ReturnCommand), f"Value 2 ({v2}) is not a returning command, it is a {type(v2)}"
         self.v1 = v1
         self.v2 = v2
-        self.name = None
-        self.py_op = None
+        # the variables to distinguish between each comparison operator
+        self.clas = Comparison
+        self.name = "Comparison"
+        self.py_op = None # a lambda function
 
     def __str__(self):
         return f"{self.name}({self.v1}, {self.v2})"
@@ -694,14 +694,7 @@ class Comparison(BooleanExpression):
         return Boolean, new_env
     
     def classes_used(self):
-        classes = set([Comparison])
-        sub_classes1 = self.v1.classes_used()
-        for sub in sub_classes1:
-            classes.add(sub)
-        sub_classes2 = self.v2.classes_used()
-        for sub in sub_classes2:
-            classes.add(sub)
-        return classes
+        return merge_2_subclasses(self.clas, self.v1, self.v2)
 
 
 class Eq(Comparison):
@@ -710,18 +703,9 @@ class Eq(Comparison):
     """
     def __init__(self, v1, v2):
         super().__init__(v1, v2)
+        self.clas = Eq
         self.name = "Eq"
         self.py_op = lambda a, b: a == b
-    
-    def classes_used(self):
-        classes = set([Eq])
-        sub_classes1 = self.v1.classes_used()
-        for sub in sub_classes1:
-            classes.add(sub)
-        sub_classes2 = self.v2.classes_used()
-        for sub in sub_classes2:
-            classes.add(sub)
-        return classes
 def eq_convert(string):
     # the convert function takes in a luka string that is valid under this spec and
     # does the necessary conversions on it, returning a completed Command object
