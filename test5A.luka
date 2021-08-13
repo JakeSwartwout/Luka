@@ -5,6 +5,11 @@
 print( 5 == 5 );
 val no: bool = 5 == 3;
 
+// Make sure it doesn't allow broken assignments
+// val wrong == 5;
+// val ew >= 5;
+// val bad != 5;
+
 // Test if they give the correct result
 // Equals
 print( 1 == 1 );
