@@ -50,3 +50,9 @@ This is built for a RISC-V architecture, and is a 5 stage pipelined processor.
 Since my main focus for this project is the coding language, the processor will likely lag behind the rest of the development.
 The tools I've been using to run it are iverilog to compile it, and it's child program vvp to simulate it.
 GDKWave has been a useful debugging tool to see the signal levels throughout the program, and I occassionally use a VSCode extension as well.
+
+## Other Notes
+
+params.py contains some notes on the language, like the version.
+It also contains the typical names for the output files, if there isn't one specified.
+These may be useful to see how the data is transformed and what file formats I use to represent each step.
