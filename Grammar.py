@@ -71,7 +71,7 @@ def print_specs():
             print(f"Class {priority_names[clas]} contains specs for:", ", ".join(lst))
 
     
-def function_type_v_c(command_type, start, minlen, end):
+def function_type_spec(command_type, start, minlen, end):
     """
     call this to generate the validation and conversion functions for a function type of Command
     this means it starts with some string, ends with some string, and has some minimum length string in the middle
@@ -80,7 +80,7 @@ def function_type_v_c(command_type, start, minlen, end):
     @input start: the string that the input should begin with
     @input minlen: the minimum length of the string in the middle
     @input end: the string that the input should end with
-    @return (command, validation, conversion): the command type and 2 functions needed to create a Spec
+    @return: a created spec with the needed validation and conversion elements
     """
     startlen = len(start)
     endlen = len(end)
@@ -115,7 +115,25 @@ def function_type_v_c(command_type, start, minlen, end):
         middle = string[startlen:-endlen]
         return command_type(decode_command(middle))
 
-    return (command_type, function_type_validation, function_type_conversion)
+    return Spec(command_type, function_type_validation, function_type_conversion)
+
+
+def symbol_split_type_spec(command_type, symbol):
+    """
+    call this to generate the validation and conversion functions for a Command with 2 inputs split by some symbol
+    this means it starts with some string, ends with some string, and has some minimum length string in the middle
+    that must recursively be decoded
+    @input command_type: the class name of the specific command
+    @input symbol: the string that the input should search for
+    @return: a created spec with the needed validation and conversion elements
+    """
+    def symbol_split_type_conversion(string):
+        part1, part2 = tuple(string.rsplit(symbol, 1))
+        part1 = decode_command(part1)
+        part2 = decode_command(part2)
+        return command_type(part1, part2)
+
+    return Spec(command_type, lambda string: symbol in string, symbol_split_type_conversion)
 
 
 def decode_command(string):
@@ -321,7 +339,7 @@ class Print(NoReturnCommand):
         for sub in sub_classes:
             classes.add(sub)
         return classes
-command_specs[priority.f].append(Spec( *function_type_v_c(Print, "print(", 1, ")") ))
+command_specs[priority.f].append( function_type_spec(Print, "print(", 1, ")") )
 
 
 class ReturnCommand(Command):
@@ -706,14 +724,64 @@ class Eq(Comparison):
         self.clas = Eq
         self.name = "Eq"
         self.py_op = lambda a, b: a == b
-def eq_convert(string):
-    # the convert function takes in a luka string that is valid under this spec and
-    # does the necessary conversions on it, returning a completed Command object
-    # @input string: the entire string of the command to convert
-    # @return Command: the Command form of that string
-    # @throw: whatever decode_command throws, due to a string found not matching a spec
-    part1, part2 = tuple(string.rsplit("==", 1))
-    part1 = decode_command(part1)
-    part2 = decode_command(part2)
-    return Eq(part1, part2)
-command_specs[priority.c].append(Spec(Eq, lambda string: "==" in string, eq_convert))
+command_specs[priority.c].append( symbol_split_type_spec(Eq, "==") )
+
+
+class NotEq(Comparison):
+    """
+    comparing if two values are not equal, !=
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = NotEq
+        self.name = "NotEq"
+        self.py_op = lambda a, b: a != b
+command_specs[priority.c].append( symbol_split_type_spec(NotEq, "!=") )
+
+
+class Gr(Comparison):
+    """
+    comparing if value a is greater than value b, a > b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = Gr
+        self.name = "Gr"
+        self.py_op = lambda a, b: a > b
+command_specs[priority.c].append( symbol_split_type_spec(Gr, ">") )
+
+
+class Ls(Comparison):
+    """
+    comparing if value a is less than value b, a < b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = Ls
+        self.name = "Ls"
+        self.py_op = lambda a, b: a < b
+command_specs[priority.c].append( symbol_split_type_spec(Ls, "<") )
+
+
+class GrEq(Comparison):
+    """
+    comparing if value a is greater than or equal to value b, a >= b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = GrEq
+        self.name = "GrEq"
+        self.py_op = lambda a, b: a >= b
+command_specs[priority.c].append( symbol_split_type_spec(GrEq, ">=") )
+
+
+class LsEq(Comparison):
+    """
+    comparing if value a is less than or equal to value b, a <= b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = LsEq
+        self.name = "LsEq"
+        self.py_op = lambda a, b: a <= b
+command_specs[priority.c].append( symbol_split_type_spec(LsEq, "<=") )
