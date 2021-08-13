@@ -118,22 +118,43 @@ def function_type_spec(command_type, start, minlen, end):
     return Spec(command_type, function_type_validation, function_type_conversion)
 
 
-def symbol_split_type_spec(command_type, symbol):
+# keep a list of the symbols we have to go by the longest ones first (to not break them up)
+# maps {len(symb) : [symb, othr, more, else]}
+comparison_symbols_list = {}
+def comparison_type_spec(command_type, symbol):
     """
-    call this to generate the validation and conversion functions for a Command with 2 inputs split by some symbol
-    this means it starts with some string, ends with some string, and has some minimum length string in the middle
-    that must recursively be decoded
+    call this to generate the validation and conversion functions for a Comparison Command
+    should have 2 inputs split by some symbol
     @input command_type: the class name of the specific command
     @input symbol: the string that the input should search for
     @return: a created spec with the needed validation and conversion elements
     """
-    def symbol_split_type_conversion(string):
+    # add this new symbol to the list
+    global symbols_list
+    if len(symbol) in comparison_symbols_list:
+        comparison_symbols_list[len(symbol)].append(symbol)
+    else:
+        comparison_symbols_list[len(symbol)] = [symbol]
+
+    def comparison_type_validation(string):
+        global symbols_list
+        # go through those symbols larger than this one
+        this_len = len(symbol)
+        for othr_len in sorted(comparison_symbols_list.keys(), reverse=True):
+            # stop once we reach this length
+            if othr_len <= this_len: break
+            # make sure the larger symbols doesn't match
+            if any([othr in string for othr in comparison_symbols_list[othr_len]]): return False
+        # check if this symbol matches
+        return symbol in string
+
+    def comparison_type_conversion(string):
         part1, part2 = tuple(string.rsplit(symbol, 1))
         part1 = decode_command(part1)
         part2 = decode_command(part2)
         return command_type(part1, part2)
 
-    return Spec(command_type, lambda string: symbol in string, symbol_split_type_conversion)
+    return Spec(command_type, comparison_type_validation, comparison_type_conversion)
 
 
 def decode_command(string):
@@ -630,6 +651,7 @@ class Val(NoReturnCommand):
 
     def classes_used(self):
         classes = set([Val, Ident])
+        if self.tipe: classes.add(self.tipe)
         sub_classes = self.value.classes_used()
         for sub in sub_classes:
             classes.add(sub)
@@ -724,7 +746,7 @@ class Eq(Comparison):
         self.clas = Eq
         self.name = "Eq"
         self.py_op = lambda a, b: a == b
-command_specs[priority.c].append( symbol_split_type_spec(Eq, "==") )
+command_specs[priority.c].append( comparison_type_spec(Eq, "==") )
 
 
 class NotEq(Comparison):
@@ -736,7 +758,7 @@ class NotEq(Comparison):
         self.clas = NotEq
         self.name = "NotEq"
         self.py_op = lambda a, b: a != b
-command_specs[priority.c].append( symbol_split_type_spec(NotEq, "!=") )
+command_specs[priority.c].append( comparison_type_spec(NotEq, "!=") )
 
 
 class Gr(Comparison):
@@ -748,7 +770,7 @@ class Gr(Comparison):
         self.clas = Gr
         self.name = "Gr"
         self.py_op = lambda a, b: a > b
-command_specs[priority.c].append( symbol_split_type_spec(Gr, ">") )
+command_specs[priority.c].append( comparison_type_spec(Gr, ">") )
 
 
 class Ls(Comparison):
@@ -760,7 +782,7 @@ class Ls(Comparison):
         self.clas = Ls
         self.name = "Ls"
         self.py_op = lambda a, b: a < b
-command_specs[priority.c].append( symbol_split_type_spec(Ls, "<") )
+command_specs[priority.c].append( comparison_type_spec(Ls, "<") )
 
 
 class GrEq(Comparison):
@@ -772,7 +794,7 @@ class GrEq(Comparison):
         self.clas = GrEq
         self.name = "GrEq"
         self.py_op = lambda a, b: a >= b
-command_specs[priority.c].append( symbol_split_type_spec(GrEq, ">=") )
+command_specs[priority.c].append( comparison_type_spec(GrEq, ">=") )
 
 
 class LsEq(Comparison):
@@ -784,4 +806,4 @@ class LsEq(Comparison):
         self.clas = LsEq
         self.name = "LsEq"
         self.py_op = lambda a, b: a <= b
-command_specs[priority.c].append( symbol_split_type_spec(LsEq, "<=") )
+command_specs[priority.c].append( comparison_type_spec(LsEq, "<=") )
