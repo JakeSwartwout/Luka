@@ -11,20 +11,22 @@ class priority(Enum):
     ie, PEMDAS but for computers
     Goes outside to in, so not quite the same order as expected
     """
-    v = 0 # variable assignments
-    p = 1 # parentheses
-    f = 2 # function
-    a = 3 # addition / subtraction
-    m = 4 # multiplication / division
-    c = 5 # constant / Identifiers (variables)
+    v = 1 # variable assignments
+    p = 2 # parentheses
+    f = 3 # function
+    c = 4 # comparison operators
+    a = 5 # addition / subtraction
+    m = 6 # multiplication / division
+    i = 7 # constant / Identifiers (variables)
 # the nice names for them all
 priority_names = {
     priority.v: "variableAssignments",
     priority.p: "parentheses",
     priority.f: "function",
+    priority.c: "comparisons",
     priority.a: "addition/subtraction",
     priority.m: "multiplication/division",
-    priority.c: "constant/identifiers"
+    priority.i: "constant/identifiers"
 }
 
 # the specifications for each command we can encounter
@@ -396,7 +398,7 @@ def integer_convert(string):
     # @return Command: the Command form of that string
     # @throw: whatever decode_command throws, due to a string found not matching a spec
     return Integer(int(string))
-command_specs[priority.c].append(Spec(Integer, integer_validate, integer_convert))
+command_specs[priority.i].append(Spec(Integer, integer_validate, integer_convert))
 type_names["int"] = Integer
 type_classes[Integer] = "Integer"
 
@@ -431,7 +433,7 @@ def boolean_convert(string):
     # @return Command: the Command form of that string
     # @throw: whatever decode_command throws, due to a string found not matching a spec
     return Boolean(bool_options[string])
-command_specs[priority.c].append(Spec(Boolean, boolean_validate, boolean_convert))
+command_specs[priority.i].append(Spec(Boolean, boolean_validate, boolean_convert))
 type_names["bool"] = Boolean
 type_classes[Boolean] = "Boolean"
 
@@ -524,6 +526,7 @@ class Sub(Expression):
 def sub_validate(string):
     # @input string: the string to check if it's valid
     # @return boolean: whether it is valid under this Spec or not
+    # TODO: add something to distinguish between subtraction and negatives
     return "-" in string
 def sub_convert(string):
     # the convert function takes in a luka string that is valid under this spec and
@@ -571,7 +574,7 @@ def ident_validate(string):
     name = string.strip()
     unaccepted_list = " ,'\"()!@#$%^&*[]}{\\|?<>.`~-=+"
     return not any([nono in name for nono in unaccepted_list])
-command_specs[priority.c].append(Spec(Ident, ident_validate, lambda string: Ident(string.strip())))
+command_specs[priority.i].append(Spec(Ident, ident_validate, lambda string: Ident(string.strip())))
 
 
 class Val(NoReturnCommand):
@@ -661,3 +664,72 @@ def val_convert(string):
     value = decode_command(value_string) # should be some ReturnCommand
     return Val(tipe, ident, value)
 command_specs[priority.v].append(Spec(Val, val_validate, val_convert))
+
+
+class Comparison(BooleanExpression):
+    """
+    base for comparing two values and producing a boolean result
+    """
+    def __init__(self, v1, v2):
+        assert isinstance(v1, ReturnCommand), f"Value 1 ({v1}) is not a returning command, it is a {type(v1)}"
+        assert isinstance(v2, ReturnCommand), f"Value 2 ({v2}) is not a returning command, it is a {type(v2)}"
+        self.v1 = v1
+        self.v2 = v2
+        self.name = None
+        self.py_op = None
+
+    def __str__(self):
+        return f"{self.name}({self.v1}, {self.v2})"
+
+    def py_eval(self, env):
+        v1, new_env = self.v1.py_eval(env)
+        v2, new_env = self.v2.py_eval(new_env)
+        return self.py_op(v1, v2), new_env
+        
+    def type_eval(self, env):
+        tipe1, new_env = self.v1.type_eval(env)
+        tipe2, new_env = self.v2.type_eval(new_env)
+        assert tipe1 is Integer, str(tipe1) + " is not a numerical data type, cannot compare"
+        assert tipe2 is Integer, str(tipe2) + " is not a numerical data type, cannot compare"
+        return Boolean, new_env
+    
+    def classes_used(self):
+        classes = set([Comparison])
+        sub_classes1 = self.v1.classes_used()
+        for sub in sub_classes1:
+            classes.add(sub)
+        sub_classes2 = self.v2.classes_used()
+        for sub in sub_classes2:
+            classes.add(sub)
+        return classes
+
+
+class Eq(Comparison):
+    """
+    comparing if two values are equal, ==
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.name = "Eq"
+        self.py_op = lambda a, b: a == b
+    
+    def classes_used(self):
+        classes = set([Eq])
+        sub_classes1 = self.v1.classes_used()
+        for sub in sub_classes1:
+            classes.add(sub)
+        sub_classes2 = self.v2.classes_used()
+        for sub in sub_classes2:
+            classes.add(sub)
+        return classes
+def eq_convert(string):
+    # the convert function takes in a luka string that is valid under this spec and
+    # does the necessary conversions on it, returning a completed Command object
+    # @input string: the entire string of the command to convert
+    # @return Command: the Command form of that string
+    # @throw: whatever decode_command throws, due to a string found not matching a spec
+    part1, part2 = tuple(string.rsplit("==", 1))
+    part1 = decode_command(part1)
+    part2 = decode_command(part2)
+    return Eq(part1, part2)
+command_specs[priority.c].append(Spec(Eq, lambda string: "==" in string, eq_convert))

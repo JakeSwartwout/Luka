@@ -1,0 +1,35 @@
+// Test 5 for the luka coding language
+// Testing comparison operators (==, !=, >, <, >=, <=)
+
+// Test that we can deal with them like normal booleans
+print( 5 == 5 );
+val no: bool = 5 == 3;
+
+// Test if they give the correct result
+// Equals
+print( 1 == 1 );
+print( 1 == 2 );
+
+// Not Equals
+print( 1 != 2 );
+print( 1 != 1 );
+
+// Greater than
+print( 2 > 1 );
+print( 1 > 1 );
+print( 1 > 2 );
+
+// Less than
+print( 1 < 2 );
+print( 1 < 1 );
+print( 2 < 1 );
+
+// Greater or equal
+print( 2 >= 1);
+print( 1 >= 1);
+print( 1 >= 2);
+
+// Less or equal
+print( 1 <= 2 );
+print( 1 <= 1 );
+print( 2 <= 1 );
