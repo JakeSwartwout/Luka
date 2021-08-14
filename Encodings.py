@@ -106,7 +106,7 @@ class rtype:
         rs2 = int_to_binary(self.rs2, 4)
         rd = int_to_binary(self.rd, 4)
         return fn3 + "0" + rs2 + rs1 + rd + optype
-instr_types[rtype] = ["add", "sub"]
+instr_types[rtype] = ["add", "sub", "slt", "xor"]
 
 
 class itype:
@@ -115,13 +115,23 @@ class itype:
     from a register and an immediate into a register
     also includes loads and JALRs
     """
+    # instr_codes = {
+    #     "addi": "000",
+    #     "subi": "001",
+    #     "slti": "010",
+    #     "addiu": "100",
+    #     "subiu": "101",
+    #     "sltiu": "110",
+    #     "slli": "011",
+    #     "srli": "111",
+    # }
     instr_codes = {
-        "addi": "000",
-        "subi": "001",
-        "slti": "010",
-        "addiu": "100",
-        "subiu": "101",
-        "sltiu": "110",
+        "andi": "000",
+        "sltiu": "001",
+        "xori": "010",
+        "slti": "100",
+        "addi": "101",
+        "subi": "110",
         "slli": "011",
         "srli": "111",
     }
@@ -160,7 +170,7 @@ class itype:
         rd = int_to_binary(self.rd, 4)
         imm = int_to_binary(self.imm, 5)
         return fn3 + imm + rs1 + rd + optype
-instr_types[itype] = ["addi", "subi"]
+instr_types[itype] = ["addi", "subi", "xori", "slti", "sltiu"]
 
 # class stype:
 #     """

@@ -15,7 +15,7 @@ print(boolean);
 
 // type specifications and checking also works
 
-val x: int = -5;
+val x: int = 5;
 val y: bool = true;
 
 // spacing allowed in type specifications

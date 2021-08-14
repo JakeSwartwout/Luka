@@ -249,11 +249,133 @@ def get_instrs_from_command(command, errors, warnings):
             # so just tag the last item with this variable name
             sub_instrs[-1].tags.add(command.ident.name)
             return sub_instrs
-    
-    elif tipe == Grammar.Ident:
-        errors.append("Shouldn't ever try to convert an identifier to an instruction, yet decoding identifier " + command.name)
-        return None
 
+    elif tipe in [Grammar.Eq, Grammar.NotEq, Grammar.Gr, Grammar.Ls, Grammar.GrEq, Grammar.LsEq]:
+        # make sure both values inside return something
+        if not isinstance(command.v1, Grammar.ReturnCommand):
+            errors.append("Must compare two values, but found: " + command.v1)
+            return []
+        if not isinstance(command.v2, Grammar.ReturnCommand):
+            errors.append("Must compare two values, but found: " + command.v2)
+            return []
+        # check if either value is an immediate
+        is_imm = False
+        if type(command.v2) is Grammar.Integer:
+            is_imm = True
+            imm = command.v2.value
+            other = command.v1
+        elif type(command.v1) is Grammar.Integer:
+            is_imm = True
+            imm = command.v1.value
+            other = command.v2
+        if is_imm:
+            # know it's an immediate
+            # check if the other is an ident, and just reference that
+            if type(other) == Grammar.Ident:
+                sub_instrs = []
+                reference = other.name
+            else:
+                # otherwise, need to decode the rest
+                sub_instrs = get_instrs_from_command(other, errors, warnings)
+                if check_errors(errors): return []
+                reference = len(sub_instrs)-1
+            # add on the final instructions depending on the comparison
+            if tipe is Grammar.Eq:
+                return sub_instrs + [
+                    Instruction("xori", ref_ids=[reference], imm=imm),      # 0 if the same, trash if different
+                    Instruction("sltiu", ref_ids=[reference+1], imm=1)      # 1 if the same, 0 if different
+                ]
+            elif tipe is Grammar.NotEq:
+                return sub_instrs + [
+                    Instruction("xori", ref_ids=[reference], imm=imm),      # 0 if the same, trash if different
+                    Instruction("sltiu", ref_ids=[reference+1], imm=1),     # 1 if the same, 0 if different
+                    Instruction("xori", ref_ids=[reference+2], imm=1)       # 0 if the same, 1 if different
+                ]
+            elif tipe is Grammar.Ls:
+                return sub_instrs + [
+                    Instruction("slti", ref_ids=[reference], imm=imm)       # 1 if a < b, 0 if a >=b
+                ]
+            elif tipe is Grammar.GrEq:
+                return sub_instrs + [
+                    Instruction("slti", ref_ids=[reference], imm=imm),      # 1 if a < b, 0 if a >= b
+                    Instruction("xori", ref_ids=[reference+1], imm=1)       # 0 if a < b, 1 if a >= b
+                ]
+            elif tipe is Grammar.LsEq:
+                return sub_instrs + [
+                    Instruction("subi", ref_ids=[reference], imm=imm),      # negative if a < b, 0 if a == b, positive if a > b
+                    Instruction("slti", ref_ids=[reference+1], imm=1)       # 1 if a <=b, 0 if a > b
+                ]
+            elif tipe is Grammar.Gr:
+                return sub_instrs + [
+                    Instruction("subi", ref_ids=[reference], imm=imm),      # negative if a < b, 0 if a == b, positive if a > b
+                    Instruction("slti", ref_ids=[reference+1], imm=1),      # 1 if a <= b, 0 if a > b
+                    Instruction("xori", ref_ids=[reference+2], imm=1)       # 0 if a <= b, 1 if a > b
+                ]
+            else:
+                errors.append("Unrecognized comparison type: " + tipe)
+                return []
+        # both are values, check if either one is an Ident
+        sub_instrs = []
+        p2offset = 0
+        if type(command.v1) == Grammar.Ident:
+            # just link up immediately
+            ref1 = command.v1.name
+        else:
+            # need to decode (and eval those commands) before linking
+            sub_instrs1 = get_instrs_from_command(command.v1, errors, warnings)
+            if check_errors(errors): return []
+            sub_instrs += sub_instrs1
+            ref1 = len(sub_instrs1) - 1
+            p2offset = ref1 + 1
+        if type(command.v2) == Grammar.Ident:
+            ref2 = command.v2.name
+        else:
+            sub_instrs2 = get_instrs_from_command(command.v2, errors, warnings)
+            if check_errors(errors): return []
+            ref2 = p2offset + len(sub_instrs2) - 1
+            # shift the second instruction references to start at the end of the first
+            for part in sub_instrs2:
+                # make sure to skip the shifting if it's a variable reference
+                part.ref_ids = [i+p2offset if type(i) is int else i for i in part.ref_ids]
+            # combine the final lists of instructions with an add on the end
+            sub_instrs += sub_instrs2
+        # add the final instructions to compare the two results
+        reference = len(sub_instrs)-1
+        # return instrs + [Instruction("add", ref_ids=[ref1, ref2])]
+        if tipe is Grammar.Eq:
+            return sub_instrs + [
+                Instruction("xor", ref_ids=[ref1, ref2]),           # 0 if the same, trash if different
+                Instruction("sltiu", ref_ids=[reference+1], imm=1)  # 1 if the same, 0 if different
+            ]
+        elif tipe is Grammar.NotEq:
+            return sub_instrs + [
+                Instruction("xor", ref_ids=[ref1, ref2]),           # 0 if the same, trash if different
+                Instruction("sltiu", ref_ids=[reference+1], imm=1), # 1 if the same, 0 if different
+                Instruction("xori", ref_ids=[reference+2], imm=1)   # 0 if the same, 1 if different
+            ]
+        elif tipe is Grammar.Ls:
+            return sub_instrs + [
+                Instruction("slt", ref_ids=[ref1, ref2])            # 1 if a < b, 0 if a >=b
+            ]
+        elif tipe is Grammar.GrEq:
+            return sub_instrs + [
+                Instruction("slt", ref_ids=[ref1, ref2]),           # 1 if a < b, 0 if a >= b
+                Instruction("xori", ref_ids=[reference+1], imm=1)   # 0 if a < b, 1 if a >= b
+            ]
+        elif tipe is Grammar.Gr:
+            return sub_instrs + [
+                Instruction("slt", ref_ids=[ref2, ref1])            # 1 if b < a, 0 if b >= a
+            ]
+        elif tipe is Grammar.LsEq:
+            return sub_instrs + [
+                Instruction("slt", ref_ids=[ref2, ref1]),           # 1 if b < a, 0 if b >= a
+                Instruction("xori", ref_ids=[reference+1], imm=1)   # 0 if b < a, 1 if b >= a
+            ]
+        else:
+            errors.append("Unrecognized comparison type: " + tipe)
+            return []
+    
+    
 
     # do this last so we don't unnecessarily fill registers when immediates would work
     # (later me: don't think that's how that works??)
@@ -262,6 +384,10 @@ def get_instrs_from_command(command, errors, warnings):
         
     elif tipe == Grammar.Boolean:
         return [Instruction("li", imm=bool_to_int[command.value])]
+
+    elif tipe == Grammar.Ident:
+        errors.append("Shouldn't ever try to convert an identifier to an instruction, yet decoding identifier " + command.name)
+        return None
 
     else:
         errors.append(f"Unrecognized command type {command}")
@@ -325,8 +451,8 @@ def find_registers(instructions, errors, warnings):
     # convert the tag references into index references
     for ndx, instr in enumerate(instructions):
         new_ids = [last_tag(tag, ndx) if type(tag) is str else tag for tag in instr.ref_ids]
-        if not all(new_ids):
-            broken = [old_id for (old_id, new_id) in zip(instr.ref_ids, new_ids) if not new_id]
+        if not all([noo is not None for noo in new_ids]):
+            broken = [str(old_id) for (old_id, new_id) in zip(instr.ref_ids, new_ids) if not new_id]
             errors.append("Unable to find a needed reference tag(s) " + ", ".join(broken) + " for instruction number " + str(ndx))
             return
         instr.ref_ids = new_ids
@@ -379,10 +505,10 @@ def find_registers(instructions, errors, warnings):
             pass
         elif op is "prnt":
             hasInput = True
-        elif op in ["addi", "subi"]:
+        elif op in ["addi", "subi", "xori", "slti", "sltiu"]:
             hasInput = True
             hasReturn = True
-        elif op in ["add", "sub"]:
+        elif op in ["add", "sub", "xor", "slt"]:
             hasInput = True
             hasInput2 = True
             hasReturn = True
@@ -434,6 +560,7 @@ def convert_pseudo(instructions, errors, warnings):
     @return: none
     """
     for instr in instructions:
+        # TODO: replace the "addi" with "ori" to increase proportion of simple commands
         if instr.op == "li":
             # li <rd>, <imm> : loads the immediate into rs1 == addi <rd>, x0, <imm>
             instr.op = "addi"
