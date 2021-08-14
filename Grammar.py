@@ -11,20 +11,22 @@ class priority(Enum):
     ie, PEMDAS but for computers
     Goes outside to in, so not quite the same order as expected
     """
-    v = 0 # variable assignments
-    p = 1 # parentheses
-    f = 2 # function
-    a = 3 # addition / subtraction
-    m = 4 # multiplication / division
-    c = 5 # constant / Identifiers (variables)
+    v = 1 # variable assignments
+    p = 2 # parentheses
+    f = 3 # function
+    c = 4 # comparison operators
+    a = 5 # addition / subtraction
+    m = 6 # multiplication / division
+    i = 7 # constant / Identifiers (variables)
 # the nice names for them all
 priority_names = {
     priority.v: "variableAssignments",
     priority.p: "parentheses",
     priority.f: "function",
+    priority.c: "comparisons",
     priority.a: "addition/subtraction",
     priority.m: "multiplication/division",
-    priority.c: "constant/identifiers"
+    priority.i: "constant/identifiers"
 }
 
 # the specifications for each command we can encounter
@@ -69,7 +71,7 @@ def print_specs():
             print(f"Class {priority_names[clas]} contains specs for:", ", ".join(lst))
 
     
-def function_type_v_c(command_type, start, minlen, end):
+def function_type_spec(command_type, start, minlen, end):
     """
     call this to generate the validation and conversion functions for a function type of Command
     this means it starts with some string, ends with some string, and has some minimum length string in the middle
@@ -78,7 +80,7 @@ def function_type_v_c(command_type, start, minlen, end):
     @input start: the string that the input should begin with
     @input minlen: the minimum length of the string in the middle
     @input end: the string that the input should end with
-    @return (command, validation, conversion): the command type and 2 functions needed to create a Spec
+    @return: a created spec with the needed validation and conversion elements
     """
     startlen = len(start)
     endlen = len(end)
@@ -113,7 +115,46 @@ def function_type_v_c(command_type, start, minlen, end):
         middle = string[startlen:-endlen]
         return command_type(decode_command(middle))
 
-    return (command_type, function_type_validation, function_type_conversion)
+    return Spec(command_type, function_type_validation, function_type_conversion)
+
+
+# keep a list of the symbols we have to go by the longest ones first (to not break them up)
+# maps {len(symb) : [symb, othr, more, else]}
+comparison_symbols_list = {}
+def comparison_type_spec(command_type, symbol):
+    """
+    call this to generate the validation and conversion functions for a Comparison Command
+    should have 2 inputs split by some symbol
+    @input command_type: the class name of the specific command
+    @input symbol: the string that the input should search for
+    @return: a created spec with the needed validation and conversion elements
+    """
+    # add this new symbol to the list
+    global symbols_list
+    if len(symbol) in comparison_symbols_list:
+        comparison_symbols_list[len(symbol)].append(symbol)
+    else:
+        comparison_symbols_list[len(symbol)] = [symbol]
+
+    def comparison_type_validation(string):
+        global symbols_list
+        # go through those symbols larger than this one
+        this_len = len(symbol)
+        for othr_len in sorted(comparison_symbols_list.keys(), reverse=True):
+            # stop once we reach this length
+            if othr_len <= this_len: break
+            # make sure the larger symbols doesn't match
+            if any([othr in string for othr in comparison_symbols_list[othr_len]]): return False
+        # check if this symbol matches
+        return symbol in string
+
+    def comparison_type_conversion(string):
+        part1, part2 = tuple(string.rsplit(symbol, 1))
+        part1 = decode_command(part1)
+        part2 = decode_command(part2)
+        return command_type(part1, part2)
+
+    return Spec(command_type, comparison_type_validation, comparison_type_conversion)
 
 
 def decode_command(string):
@@ -217,6 +258,18 @@ class Program():
 
 
 
+def merge_2_subclasses(clas, sub1, sub2):
+    classes = set([clas])
+    sub_classes1 = sub1.classes_used()
+    for sub in sub_classes1:
+        classes.add(sub)
+    sub_classes2 = sub2.classes_used()
+    for sub in sub_classes2:
+        classes.add(sub)
+    return classes
+
+
+
 class Command(ABC):
     """
     the base Command class for all others to inherit from
@@ -307,7 +360,7 @@ class Print(NoReturnCommand):
         for sub in sub_classes:
             classes.add(sub)
         return classes
-command_specs[priority.f].append(Spec( *function_type_v_c(Print, "print(", 1, ")") ))
+command_specs[priority.f].append( function_type_spec(Print, "print(", 1, ")") )
 
 
 class ReturnCommand(Command):
@@ -396,7 +449,7 @@ def integer_convert(string):
     # @return Command: the Command form of that string
     # @throw: whatever decode_command throws, due to a string found not matching a spec
     return Integer(int(string))
-command_specs[priority.c].append(Spec(Integer, integer_validate, integer_convert))
+command_specs[priority.i].append(Spec(Integer, integer_validate, integer_convert))
 type_names["int"] = Integer
 type_classes[Integer] = "Integer"
 
@@ -431,7 +484,7 @@ def boolean_convert(string):
     # @return Command: the Command form of that string
     # @throw: whatever decode_command throws, due to a string found not matching a spec
     return Boolean(bool_options[string])
-command_specs[priority.c].append(Spec(Boolean, boolean_validate, boolean_convert))
+command_specs[priority.i].append(Spec(Boolean, boolean_validate, boolean_convert))
 type_names["bool"] = Boolean
 type_classes[Boolean] = "Boolean"
 
@@ -462,14 +515,7 @@ class Add(Expression):
         return Integer, new_env
     
     def classes_used(self):
-        classes = set([Add])
-        sub_classes1 = self.v1.classes_used()
-        for sub in sub_classes1:
-            classes.add(sub)
-        sub_classes2 = self.v2.classes_used()
-        for sub in sub_classes2:
-            classes.add(sub)
-        return classes
+        return merge_2_subclasses(Add, self.v1, self.v2)
 def add_validate(string):
     # @input string: the string to check if it's valid
     # @return boolean: whether it is valid under this Spec or not
@@ -513,17 +559,11 @@ class Sub(Expression):
         return Integer, new_env
     
     def classes_used(self):
-        classes = set([Sub])
-        sub_classes1 = self.v1.classes_used()
-        for sub in sub_classes1:
-            classes.add(sub)
-        sub_classes2 = self.v2.classes_used()
-        for sub in sub_classes2:
-            classes.add(sub)
-        return classes
+        return merge_2_subclasses(Sub, self.v1, self.v2)
 def sub_validate(string):
     # @input string: the string to check if it's valid
     # @return boolean: whether it is valid under this Spec or not
+    # TODO: add something to distinguish between subtraction and negatives
     return "-" in string
 def sub_convert(string):
     # the convert function takes in a luka string that is valid under this spec and
@@ -571,7 +611,7 @@ def ident_validate(string):
     name = string.strip()
     unaccepted_list = " ,'\"()!@#$%^&*[]}{\\|?<>.`~-=+"
     return not any([nono in name for nono in unaccepted_list])
-command_specs[priority.c].append(Spec(Ident, ident_validate, lambda string: Ident(string.strip())))
+command_specs[priority.i].append(Spec(Ident, ident_validate, lambda string: Ident(string.strip())))
 
 
 class Val(NoReturnCommand):
@@ -611,6 +651,7 @@ class Val(NoReturnCommand):
 
     def classes_used(self):
         classes = set([Val, Ident])
+        if self.tipe: classes.add(self.tipe)
         sub_classes = self.value.classes_used()
         for sub in sub_classes:
             classes.add(sub)
@@ -661,3 +702,108 @@ def val_convert(string):
     value = decode_command(value_string) # should be some ReturnCommand
     return Val(tipe, ident, value)
 command_specs[priority.v].append(Spec(Val, val_validate, val_convert))
+
+
+class Comparison(BooleanExpression):
+    """
+    base for comparing two values and producing a boolean result
+    """
+    def __init__(self, v1, v2):
+        assert isinstance(v1, ReturnCommand), f"Value 1 ({v1}) is not a returning command, it is a {type(v1)}"
+        assert isinstance(v2, ReturnCommand), f"Value 2 ({v2}) is not a returning command, it is a {type(v2)}"
+        self.v1 = v1
+        self.v2 = v2
+        # the variables to distinguish between each comparison operator
+        self.clas = Comparison
+        self.name = "Comparison"
+        self.py_op = None # a lambda function
+
+    def __str__(self):
+        return f"{self.name}({self.v1}, {self.v2})"
+
+    def py_eval(self, env):
+        v1, new_env = self.v1.py_eval(env)
+        v2, new_env = self.v2.py_eval(new_env)
+        return self.py_op(v1, v2), new_env
+        
+    def type_eval(self, env):
+        tipe1, new_env = self.v1.type_eval(env)
+        tipe2, new_env = self.v2.type_eval(new_env)
+        assert tipe1 is Integer, str(tipe1) + " is not a numerical data type, cannot compare"
+        assert tipe2 is Integer, str(tipe2) + " is not a numerical data type, cannot compare"
+        return Boolean, new_env
+    
+    def classes_used(self):
+        return merge_2_subclasses(self.clas, self.v1, self.v2)
+
+
+class Eq(Comparison):
+    """
+    comparing if two values are equal, ==
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = Eq
+        self.name = "Eq"
+        self.py_op = lambda a, b: a == b
+command_specs[priority.c].append( comparison_type_spec(Eq, "==") )
+
+
+class NotEq(Comparison):
+    """
+    comparing if two values are not equal, !=
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = NotEq
+        self.name = "NotEq"
+        self.py_op = lambda a, b: a != b
+command_specs[priority.c].append( comparison_type_spec(NotEq, "!=") )
+
+
+class Gr(Comparison):
+    """
+    comparing if value a is greater than value b, a > b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = Gr
+        self.name = "Gr"
+        self.py_op = lambda a, b: a > b
+command_specs[priority.c].append( comparison_type_spec(Gr, ">") )
+
+
+class Ls(Comparison):
+    """
+    comparing if value a is less than value b, a < b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = Ls
+        self.name = "Ls"
+        self.py_op = lambda a, b: a < b
+command_specs[priority.c].append( comparison_type_spec(Ls, "<") )
+
+
+class GrEq(Comparison):
+    """
+    comparing if value a is greater than or equal to value b, a >= b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = GrEq
+        self.name = "GrEq"
+        self.py_op = lambda a, b: a >= b
+command_specs[priority.c].append( comparison_type_spec(GrEq, ">=") )
+
+
+class LsEq(Comparison):
+    """
+    comparing if value a is less than or equal to value b, a <= b
+    """
+    def __init__(self, v1, v2):
+        super().__init__(v1, v2)
+        self.clas = LsEq
+        self.name = "LsEq"
+        self.py_op = lambda a, b: a <= b
+command_specs[priority.c].append( comparison_type_spec(LsEq, "<=") )
