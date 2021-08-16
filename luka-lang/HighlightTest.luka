@@ -1,0 +1,15 @@
+// Test 5 for the luka coding language
+// Testing the vs-code syntax highlighting
+
+print( 0 );
+val name: bool = true;
+val other: int = 5;
+
+
+val boolean: bool = false;
+
+val bool2: bool = 5 == 6;  // end of line
+ ==
+ >=
+ >
+ <=

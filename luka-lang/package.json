@@ -1,0 +1,25 @@
+{
+    "name": "luka-lang",
+    "displayName": "Luka Lang",
+    "description": "Syntax highlighting for the Luka Language",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.59.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "luka",
+            "aliases": ["Luka", "luka"],
+            "extensions": [".luka"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "luka",
+            "scopeName": "source.luka",
+            "path": "./syntaxes/luka.tmLanguage.json"
+        }]
+    }
+}

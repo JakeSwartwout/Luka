@@ -1,0 +1,81 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Luka",
+	"scopeName": "source.luka",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#variables"
+		},
+		{
+			"include": "#builtins"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.luka",
+				"match": "\\b(if|while|for)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.luka",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.luka",
+					"match": "\\\\"
+				}
+			]
+		},
+
+
+		"comments": {
+			"name": "comment.line.double-slash.luka",
+			"begin": "\/\/",
+			"end": "\n"
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.numeric.luka",
+					"match": "\\b[0-9]+\\b"
+				},
+				{
+					"name": "constant.language.luka",
+					"match": "\\b(true|false)\\b"
+				}
+			]
+		},
+		"variables": {
+			"patterns": [
+				{
+					"name": "storage.type.int.datatype.luka",
+					"match": "\\b(int|bool)\\b"
+				},
+				{
+					"name": "storage.type.var.val.luka",
+					"match": "\\bval\\b"
+				}
+			]
+		},
+		"builtins": {
+			"patterns": [
+				{
+					"name": "entity.name.function.print.luka",
+					"match": "\\bprint"
+				},
+				{
+					"name": "keyword.operator.logical.comparison.luka",
+					"match": "(==|!=|>=|<=|>|<)"
+				}
+			]
+		}
+	}
+}
