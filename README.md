@@ -51,6 +51,10 @@ Since my main focus for this project is the coding language, the processor will 
 The tools I've been using to run it are iverilog to compile it, and it's child program vvp to simulate it.
 GDKWave has been a useful debugging tool to see the signal levels throughout the program, and I occassionally use a VSCode extension as well.
 
+## Syntax Highlighting
+
+I've also built out a custom VS Code highlighting extension for the Luka language. To implement it, copy the `luka-lang` folder into your `<user name>/.vscode/extensions` folder, then reload VS Code. That subfolder also contains a readme for more information.
+
 ## Other Notes
 
 params.py contains some notes on the language, like the version.

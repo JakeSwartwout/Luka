@@ -252,8 +252,7 @@ class Program():
         classes = set([Program])
         for comm in self.commands:
             sub_classes = comm.classes_used()
-            for sub in sub_classes:
-                classes.add(sub)
+            classes.update(sub_classes)
         return classes
 
 
@@ -261,19 +260,17 @@ class Program():
 def merge_2_subclasses(clas, sub1, sub2):
     classes = set([clas])
     sub_classes1 = sub1.classes_used()
-    for sub in sub_classes1:
-        classes.add(sub)
+    classes.update(sub_classes1)
     sub_classes2 = sub2.classes_used()
-    for sub in sub_classes2:
-        classes.add(sub)
+    classes.update(sub_classes2)
     return classes
 
 
 
-class Command(ABC):
+class Element(ABC):
     """
-    the base Command class for all others to inherit from
-    any type of command to perform
+    the base class for all other code Elements to inherit from
+    any type of element, could be a single command, a group of commands in a scope, or something to change the flow of execution
     """
     def __init__(self):
         self.line_number = None
@@ -281,7 +278,7 @@ class Command(ABC):
     
     @abstractmethod
     def __str__(self):
-        return "Command"
+        return "Element"
     
     @abstractmethod
     def py_eval(self, env):
@@ -292,6 +289,7 @@ class Command(ABC):
         @return: the new environment after evaluation
         """
         pass
+
     @abstractmethod
     def type_eval(self, env):
         """
@@ -302,6 +300,7 @@ class Command(ABC):
         @throw: throws an exception if there is a type mismatch error
         """
         pass
+
     @abstractmethod
     def classes_used(self):
         """
@@ -309,7 +308,33 @@ class Command(ABC):
         @input: none
         @return classes: a Set() object of the classes (as classes, not strings)
         """
+        return set([Element])
+
+
+class Command(Element):
+    """
+    the base Command class for most others to inherit from
+    any type of single-action command to perform
+    """
+    def __init__(self):
+        pass
+    
+    @abstractmethod
+    def __str__(self):
+        return "Command"
+    
+    @abstractmethod
+    def py_eval(self, env):
+        pass
+
+    @abstractmethod
+    def type_eval(self, env):
+        pass
+
+    @abstractmethod
+    def classes_used(self):
         return set([Command])
+
 
 class NoReturnCommand(Command):
     """
@@ -327,14 +352,16 @@ class NoReturnCommand(Command):
         return set([NoReturnCommand])
 
 
-# class Noop(NoReturnCommand):
-#     """
-#     a no-operation action
-#     does nothing
-#     """
-#     def __str__(self):
-#         return "Noop"
-# command_specs.append(Spec(Noop, ""))
+class Noop(NoReturnCommand):
+    """
+    a no-operation action
+    does nothing
+    """
+    def __str__(self):
+        return "Noop"
+    def classes_used(self):
+        return set([Noop])
+# purely Grammar side, won't show up in code
 
 
 class Print(NoReturnCommand):
@@ -357,8 +384,7 @@ class Print(NoReturnCommand):
     def classes_used(self):
         classes = set([Print])
         sub_classes = self.value.classes_used()
-        for sub in sub_classes:
-            classes.add(sub)
+        classes.update(sub_classes)
         return classes
 command_specs[priority.f].append( function_type_spec(Print, "print(", 1, ")") )
 
@@ -653,8 +679,7 @@ class Val(NoReturnCommand):
         classes = set([Val, Ident])
         if self.tipe: classes.add(self.tipe)
         sub_classes = self.value.classes_used()
-        for sub in sub_classes:
-            classes.add(sub)
+        classes.update(sub_classes)
         return classes
 val_start = "val "
 val_type_split = ":"
@@ -807,3 +832,102 @@ class LsEq(Comparison):
         self.name = "LsEq"
         self.py_op = lambda a, b: a <= b
 command_specs[priority.c].append( comparison_type_spec(LsEq, "<=") )
+
+
+class Scope(Element):
+    """
+    group several sub-elements into one block, giving them a different environment to execute under
+    the scope will take on the value (or no value) of the last command in the scope that executes
+    use a semicolon at the end to indicate that it is a no-value if statement
+    """
+    def __init__(self, sub_elements = []):
+        assert type(sub_elements) is list, "sub_elements must be given as a list"
+        assert all([isinstance(sub_elem, Element) for sub_elem in sub_elements]), "All sub elements must be of type element"
+        self.sub_elements = sub_elements
+    def __str__(self):
+        return "Scope([" + ",\n".join(str(elem) for elem in self.sub_elements) + "])"
+    def py_eval(self, env):
+        new_env = env.copy()
+        for elem in self.sub_elements:
+            latest_val, new_env = elem.py_eval(new_env)
+        # return the result of the last command, plus the original environment
+        return latest_val, env
+    def type_eval(self, env):
+        new_env = env.copy()
+        for elem in self.sub_elements:
+            latest_type, new_env = elem.type_eval(new_env)
+        # return the result of the last command, plus the original environment
+        return latest_type, env
+    def classes_used(self):
+        classes = set([Scope])
+        for elem in self.sub_elements:
+            sub_classes = elem.classes_used()
+            classes.update(sub_classes)
+        return classes
+# def scope_validate(string):
+#     # @input string: the string to check if it's valid
+#     # @return boolean: whether it is valid under this Spec or not
+
+# def scope_convert()
+#     #input string
+#     return command
+these have to be completely different things because they are multi-line
+
+
+class ControlFlow(Element):
+    """
+    any element that will control the flow of program execution
+    these include If statements, For loops, While loops, class declarations, and function declarations
+    """
+    def __str__(self):
+        return "ControlFlow"
+    def classes_used(self):
+        return set([ControlFlow])
+
+
+class If(ControlFlow):
+    """
+    the wrapper to create an if statement (or an if/else, or an if/else-if/else statement)
+    chooses which sub scope to enter to execute based on a boolean condition
+    the if statement will take on the value of the last command in the scope that executes
+    use a semicolon at the end to indicate that it is a no-value if statement
+    """
+    def __init__(self, condition, if_scope, else_scope):
+        assert isinstance(condition, BooleanExpression), "The condition must be a returning expression"
+        assert isinstance(if_scope, Scope), "The commands given to an if block must be a scope, but it is: " + type(if_scope)
+        assert isinstance(else_scope, Scope), "The commands given to an else block must be a scope, but it is: " + type(if_scope)
+        self.condition = condition
+        self.if_scope = if_scope
+        self.else_scope = else_scope
+    
+    def __str__(self):
+        return "If(" + str(self.condition) + ", " + str(self.if_scope) + ", " + str(self.else_scope) + ")"
+    
+    def py_eval(self, env):
+        cond_result, new_env = self.condition.py_eval(env)
+        if cond_result:
+            return self.if_scope.py_eval(new_env)
+        else:
+            return self.else_scope.py_eval(new_env)
+
+    def type_eval(self, env):
+        cond_type, new_env = self.condition.type_eval(env)
+        assert cond_type is Boolean, "The condition must result in a boolean value, but is a: " + cond_type
+        # make sure the return of the scope is the same for both the if and the else
+        sub_env = new_env.copy()
+        if_type, if_env = self.if_scope.type_eval(sub_env)
+        else_type, else_env = self.else_scope.type_eval(sub_env)
+        assert if_type == else_type, f"Must have the same return type for the last statements in the if/else blocks; they are {if_type} and {else_type}"
+        # return the environment after evaluating the condition, but before either block
+        return if_type, new_env
+
+    def classes_used(self):
+        classes = set([If])
+        for cmd_list in [[self.condition], self.if_commands, self.else_commands]:
+            for cmd in cmd_list:
+                sub_classes = cmd.classes_used()
+                classes.update(sub_classes)
+        return classes
+command_specs[priority.hmm].append( function_type_spec(If, "if(", 1, ")") )
+make it something like controlflow_specs?
+because this isn't a command, ad we need to know to look for a scope afterwards
