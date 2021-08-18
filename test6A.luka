@@ -1,0 +1,95 @@
+// Test 6 for the luka coding language
+// Testing sub-scopes and adding if statements
+
+
+// sub scopes
+
+val x: int = 5;
+
+// going into a sub-scope
+{
+    val x: int = 10;
+    val y: int = 10;
+    // detects the overwriting here
+    print(x); print(y);
+}
+// but not here
+print(x);
+// should fail, shouldn't recognize y at all
+print(y);
+
+
+// they return values
+val answer: bool = {
+    val a: int = 1;
+    val b: int = 2;
+    print(a == b);
+    a == b
+}
+
+// should fail if they end in a semicolon, as it doesn't return anything
+val answer2: bool = {
+    val a: int = 1;
+    val b: int = 2;
+    print(a == b);
+    a == b;
+}
+
+// but it's okay to return if we don't want to capture anything
+{
+    x == 5
+}
+
+
+
+// testing if statements to control flow
+// with no spacing
+if(true){
+    print(01);
+}else{
+    print(00);
+}
+
+// with spacing
+if ( true ) {
+    print(11);
+} else {
+    print(10);
+}
+
+// all on one line
+if (true) {print(21);} else {print(20);}
+
+// with a variable condition
+if (answer) {print(31);} else {print(30);}
+
+// with an immediate condition
+if ( 4 == 4 ) {print(41)} else {print(40)}
+
+// with a variable comparison condition
+val y = 10;
+if (x <= y) { print(51); }else{ print(50); }
+
+
+// testing if statements to receive values
+val five: int = if (x == 5) {
+    print(61);
+    x
+} else {
+    print(60);
+    5
+}
+
+print(five);
+
+// Should all fail because of type mismatches
+val fail: int = if (true) {true} else {true}
+val fail: int = if (true) {0} else {true}
+val fail: int = if (true) {true} else {0}
+if (true) {true;} else {true}
+if (true) {true} else {true;}
+
+// the working versions
+val pass: int = if (true) {0} else {0}
+if (true) {true;} else {true;}
+if (true) {true} else {true}
