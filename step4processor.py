@@ -107,7 +107,7 @@ def main(args):
 
     # writes the file out
     if args.debug: print("Writing the enums file")
-    write_output("Verilog/Specs/enums.vh", enums_lines, errors, warnings, args.debug)
+    write_output("Verilog/source/Specs/enums.vh", enums_lines, errors, warnings, args.debug)
     if check_errors(errors, True): return 1
 
     if len(warnings) > 0:

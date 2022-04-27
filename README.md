@@ -28,28 +28,32 @@ Specifying either `--execute` or `-e` on the command line will perform a python 
 
 Luka Grammar (.py) -> Modified RISC-V Assembly (.json)
 
+Goes through the grammar and determines what assembly commands are necessary to make it work, including register allocation. Then goes through and does this.
+
 
 ### Step 3: Encoder
 
-Assembly (.json) -> Binary Code (.vh)
+Assembly (.json) -> Binary Code (.txt)
+
+Determines which command each is, builds out the binary format for it, and inserts the necessary data.
+
+Just stores it as a txt for simplicity sake, technically just binary data now.
 
 
 ### Step 4: Processor
 
-Links up the processor
+Only needs to be done once.
+
+Compiles the processor and downloads it to the board.
+
+Works with quartus, so that needs to be installed and the commands added to the Path environment.
+Also needs a CDF to be generated, so may need to open quartus and set up the programmer first, depending on your specific board setup.
 
 
 ### Step 5: Simulator
 
-Runs the simulator
+Loads the binary code onto the board, ready for the user to start execution.
 
-## SystemVerilog Processor
-
-Along with the python scripts, I have also built a simple computer processor in SystemVerilog (stored in the Verilog folder).
-This is built for a RISC-V architecture, and is a 5 stage pipelined processor.
-Since my main focus for this project is the coding language, the processor will likely lag behind the rest of the development.
-The tools I've been using to run it are iverilog to compile it, and it's child program vvp to simulate it.
-GDKWave has been a useful debugging tool to see the signal levels throughout the program, and I occassionally use a VSCode extension as well.
 
 ## Other Notes
 
