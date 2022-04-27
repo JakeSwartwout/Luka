@@ -52,27 +52,28 @@ assign reset_n = KEY[0];
 
 logic sys_clock;
 
-clockDivider #( .half_divide_by(CLOCK_DIVISOR) ) clockDivider 
-              ( .clock_in   (CLOCK_50),
+// 50 MHz = 50000000 Hz
+// half divisor of 50000000 = 1/2 Hz output, cycle once every 2 seconds
+clockDivider #( .half_divide_by (50_000_000) ) clockDivider 
+              ( .clock_in       (CLOCK_50),
                 .reset_n,
-                .clock_out  (sys_clock)
-              );
+                .clock_out      (sys_clock)
+);
 
 
 
 // ---  Bundling the SDRAM signals ---
-SDRAM_interface sdram(
-    .sdram_clk   (DRAM_CLK),
-    .addr        (DRAM_ADDR),
-    .ba          (DRAM_BA),
-    .cas_n       (DRAM_CAS_N),
-    .cke         (DRAM_CKE),
-    .cs_n        (DRAM_CS_N),
-    .dq          (DRAM_DQ),
-    .dqm         ({DRAM_UDQM, DRAM_LDQM}),
-    .ras_n       (DRAM_RAS_N),
-    .we_n        (DRAM_WE_N)
-);
+SDRAM_interface sdram();
+    assign DRAM_CLK                 = sdram.sdram_clk;
+    assign DRAM_ADDR                = sdram.addr;
+    assign DRAM_BA                  = sdram.ba;
+    assign DRAM_CAS_N               = sdram.cas_n;
+    assign DRAM_CKE                 = sdram.cke;
+    assign DRAM_CS_N                = sdram.cs_n;
+    assign DRAM_DQ                  = sdram.dq;
+    assign {DRAM_UDQM, DRAM_LDQM}   = sdram.dqm;
+    assign DRAM_RAS_N               = sdram.ras_n;
+    assign DRAM_WE_N                = sdram.we_n;
 
 
 
@@ -109,12 +110,12 @@ logic [VALUE_W-1:0] s_wb_wbdat;
 // --- Stage 1 - Instruction Fetch ---
 
 stg_1_IF Stage1(
-    .clock, .reset,
+    .CLOCK_50, .sys_clock, .reset_n,
 
     .r_if_pc,
     .r_id_instr,
     .LEDR,
-    .sdram(sdram.receiver)
+    .sdram
 );
 
 
@@ -122,7 +123,7 @@ stg_1_IF Stage1(
 // --- Stage 2 - Instruction Decode ---
 
 stg_2_ID Stage2(
-    .clock, .reset,
+    .sys_clock, .reset_n,
     .r_id_instr,
 
     .r_ex_aluop,
@@ -139,7 +140,7 @@ stg_2_ID Stage2(
 // --- Stage 3 - Execute ---
 
 stg_3_EX Stage3(
-    .clock, .reset,
+    .sys_clock, .reset_n,
     .r_ex_aluop,
     .r_ex_read1,
     .r_ex_read2,
@@ -160,7 +161,7 @@ stg_3_EX Stage3(
 // --- Stage 4 - Memory ---
 
 stg_4_ME Stage4(
-    .clock, .reset,
+    .sys_clock, .reset_n,
     .r_me_rd,
     .r_me_aluout,
     .r_me_aluzero,
@@ -178,7 +179,7 @@ stg_4_ME Stage4(
 // --- Stage 5 - Writeback ---
 
 stg_5_WB Stage5(
-    .clock, .reset,
+    .sys_clock, .reset_n,
     .r_wb_aluout,
     .r_wb_rd,
     .r_wb_RegWrite,
@@ -191,7 +192,7 @@ stg_5_WB Stage5(
 
 // register fetch
 registerFile rf(
-    .clock, .reset,
+    .clock(sys_clock), .reset_n,
     .rs1(s_id_rs1),
     .rs2(s_id_rs2),
     .rd(r_wb_rd),
@@ -200,6 +201,5 @@ registerFile rf(
     .read1(r_ex_read1),
     .read2(r_ex_read2)
 );
-
 
 endmodule

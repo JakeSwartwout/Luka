@@ -4,7 +4,7 @@
 `endif
 
 module stg_3_EX(
-    input clock, reset, 
+    input sys_clock, reset_n, 
     input [ALU_OP_W-1:0] r_ex_aluop,
     input [VALUE_W-1:0] r_ex_read1,
     input [VALUE_W-1:0] r_ex_read2,
@@ -31,8 +31,8 @@ assign s_ex_aluzero = (s_ex_aluout == 0)? 1'b1 : 1'b0;
 
 // ---  REGISTER CLOCKING ---
 
-always_ff @ (posedge clock, negedge reset) begin
-    if (!reset) begin
+always_ff @ (posedge sys_clock, negedge reset_n) begin
+    if (~reset_n) begin
         r_me_rd <= 0;
         r_me_aluout <= 0;
         r_me_aluzero <= 0;

@@ -11,7 +11,7 @@ module valueToDisplay(
     // we can represent a signed 16-bit value with a +/- and 5 digits
     input [VALUE_W -1:0] value,
     input print_it,
-    output [7:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5
+    output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5
 );
 
 
@@ -67,7 +67,7 @@ assign HEX1 = (valueBCD[4:1] == 0)? HEX_OFF : value_decoded[1];
 assign HEX0 = (valueBCD[4:0] == 0)? HEX_OFF : value_decoded[0];
 
 // The negative sign
-assign HEX5 = isNeg? 8'b1011_1111 : HEX_OFF;
+assign HEX5 = isNeg? 7'b011_1111 : HEX_OFF;
 
 
 endmodule

@@ -1,5 +1,6 @@
 `ifndef imports
     `include "../Specs/specs.vh"
+    `include "../Specs/SDRAM_interface.sv"
     `include "../Helpers/instructionMemory.sv"
 `endif
 
@@ -25,7 +26,7 @@ instructionMemory instrMem(
     .reset_n,
     .read_addr          (s_if_pc),
     .instr_value        (s_if_instr),
-    .SDRAM_connection   (sdram.receiver)
+    .sdram
 );
 
 
@@ -43,8 +44,8 @@ assign LEDR = r_if_pc;
 
 // ---  REGISTER CLOCKING ---
 
-always_ff @ (posedge clock, negedge reset) begin
-    if (!reset) begin
+always_ff @ (posedge sys_clock, negedge reset_n) begin
+    if (~reset_n) begin
         r_if_pc <= 0;
         r_id_instr <= 0;
     end else begin

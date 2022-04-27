@@ -3,7 +3,7 @@
 `endif
 
 module stg_5_WB(
-    input clock, reset,
+    input sys_clock, reset_n,
     input [VALUE_W-1:0] r_wb_aluout,
     input [REG_ADDR_W-1:0] r_wb_rd,
     input r_wb_RegWrite,

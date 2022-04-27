@@ -1,12 +1,11 @@
 `ifndef imports
     `include "../Specs/specs.vh"
     `include "../Specs/enums.vh"
-    `include "../Helpers/registerFile.sv"      // for storing our register values
     `include "../Helpers/instructionDecoder.sv"// for decoding our instruction into registers, imm, and control signals
 `endif
 
 module stg_2_ID(
-    input clock, reset,
+    input sys_clock, reset_n,
     input [INSTR_W-1:0] r_id_instr,
 
     // output [OPTYPE_W-1:0] r_ex_opc,
@@ -41,8 +40,8 @@ instructionDecoder instrDecode(
 
 // don't clock the rs1 or rs2, since those need to go to the register file still
 
-always_ff @ (posedge clock, negedge reset) begin
-    if (!reset) begin
+always_ff @ (posedge sys_clock, negedge reset_n) begin
+    if (~reset_n) begin
         r_ex_aluop <= 0;
         r_ex_rd <= 0;
         r_ex_imm <= 0;

@@ -34,3 +34,5 @@ SDRAM_Connection sdram_controller (
     .sdram_controller_wire_ras_n     (sdram.ras_n),                  //                      .ras_n
     .sdram_controller_wire_we_n      (sdram.we_n)                    //                      .we_n
 );
+
+endmodule

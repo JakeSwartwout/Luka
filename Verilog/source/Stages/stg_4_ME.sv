@@ -4,7 +4,7 @@
 `endif
 
 module stg_4_ME(
-    input clock, reset,
+    input sys_clock, reset_n,
     input [REG_ADDR_W-1:0] r_me_rd,
     input [VALUE_W-1:0] r_me_aluout,
     input r_me_aluzero,
@@ -14,7 +14,7 @@ module stg_4_ME(
     output reg [VALUE_W-1:0] r_wb_aluout,
     output reg [REG_ADDR_W-1:0] r_wb_rd,
     output reg r_wb_RegWrite,
-    output wire [7:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5
+    output wire [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5
 );
 
 
@@ -35,8 +35,8 @@ valueToDisplay printer( .value(r_me_aluout),
 
 // ---  REGISTER CLOCKING ---
 
-always_ff @ (posedge clock, negedge reset) begin
-    if (!reset) begin
+always_ff @ (posedge sys_clock, negedge reset_n) begin
+    if (~reset_n) begin
         r_wb_aluout <= 0;
         r_wb_rd <= 0;
         r_wb_RegWrite <= 0;
