@@ -6,7 +6,7 @@
    version="1.0"
    description=""
    tags=""
-   categories="" />
+   categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
    element clk_0
@@ -55,7 +55,7 @@
  <parameter name="hideFromIPCatalog" value="false" />
  <parameter name="lockedInterfaceDefinition" value="" />
  <parameter name="maxAdditionalLatency" value="1" />
- <parameter name="projectName" value="" />
+ <parameter name="projectName" value="LukaProcessor.qpf" />
  <parameter name="sopcBorderPoints" value="false" />
  <parameter name="systemHash" value="0" />
  <parameter name="testBenchDutName" value="" />
@@ -329,7 +329,7 @@
   <parameter name="powerUpDelay" value="100.0" />
   <parameter name="refreshPeriod" value="7.8" />
   <parameter name="registerDataIn" value="true" />
-  <parameter name="rowWidth" value="12" />
+  <parameter name="rowWidth" value="13" />
  </module>
  <connection
    kind="avalon"

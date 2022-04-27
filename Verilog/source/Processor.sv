@@ -1,6 +1,8 @@
 `ifndef imports
   `include "./Helpers/clockDivider.sv"      // for reducing our clock speed
+  `include "./Helpers/registerFile.sv"
   `include "./Specs/specs.vh"
+  `include "./Specs/SDRAM_interface.vh"
   `include "./Specs/enums.vh"
   `include "./Stages/stg_1_IF.sv"
   `include "./Stages/stg_2_ID.sv"
@@ -12,34 +14,65 @@
 
 // ---  MODULE DECLARATION ---
 
-module Processor(ADC_CLK_10, KEY, SW, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
+module Processor(
+	input 		          		CLOCK_50,
+  input 		     [3:0]		KEY,
+  output		     [9:0]		LEDR,
+	// 7 segment display
+	output		     [6:0]		HEX0,
+	output		     [6:0]		HEX1,
+	output		     [6:0]		HEX2,
+	output		     [6:0]		HEX3,
+	output		     [6:0]		HEX4,
+	output		     [6:0]		HEX5,
+	// SDRAM access
+	output		    [12:0]		DRAM_ADDR,
+	output		     [1:0]		DRAM_BA,
+	output		          		DRAM_CAS_N,
+	output		          		DRAM_CKE,
+	output		          		DRAM_CLK,
+	output		          		DRAM_CS_N,
+	inout 		    [15:0]		DRAM_DQ,
+	output		          		DRAM_LDQM,
+	output		          		DRAM_RAS_N,
+	output		          		DRAM_UDQM,
+	output		          		DRAM_WE_N
+);
 
 
 
-// ---  INPUTS & OUTPUTS ---
+// ---  Reset setup ---
 
-parameter CLOCK_DIVISOR = 1_000_000;
-
-// Specs are for the DE-10 Lite board
-input ADC_CLK_10; // clock
-input [1:0] KEY; // 2 buttons, KEY[0] is the reset button
-input [9:0] SW; // 10 possible switches
-output [7:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5; // 6 hex displays
-output [9:0] LEDR; // 10 LEDs
-// not all of these are needed, but they are available if they are
+logic reset_n;
+assign reset_n = KEY[0];
 
 
-// ---  CLOCK SETUP ---
 
-logic clock;
-logic reset;
-assign reset = KEY[0];
+// ---  Clock setup ---
+
+logic sys_clock;
 
 clockDivider #( .half_divide_by(CLOCK_DIVISOR) ) clockDivider 
-              ( .clock_in( ADC_CLK_10 ),
-                .reset_n( reset ),   // KEY and Reset are both active low
-                .clock_out( clock )
+              ( .clock_in   (CLOCK_50),
+                .reset_n,
+                .clock_out  (sys_clock)
               );
+
+
+
+// ---  Bundling the SDRAM signals ---
+SDRAM_interface sdram(
+  sdram_clk   (DRAM_CLK)
+  addr        (DRAM_ADDR),
+  ba          (DRAM_BA),
+  cas_n       (DRAM_CAS_N),
+  cke         (DRAM_CKE),
+  cs_n        (DRAM_CS_N),
+  dq          (DRAM_DQ),
+  dqm         ({DRAM_UDQM, DRAM_LDQM}),
+  ras_n       (DRAM_RAS_N),
+  we_n        (DRAM_WE_N)
+);
 
 
 
@@ -80,7 +113,8 @@ stg_1_IF Stage1(
 
   .r_if_pc,
   .r_id_instr,
-  .LEDR
+  .LEDR,
+  .sdram(sdram.receiver)
   );
 
 

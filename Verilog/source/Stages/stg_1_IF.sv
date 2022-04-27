@@ -1,14 +1,15 @@
 `ifndef imports
     `include "../Specs/specs.vh"
-    `include "../inputs.vh"
+    `include "../Helpers/instructionMemory.sv"
 `endif
 
 module stg_1_IF(
-    input clock, reset,
+    input CLOCK_50, sys_clock, reset_n,
 
     output reg [INSTR_ADDR_W-1:0] r_if_pc,
     output reg [INSTR_W-1:0] r_id_instr,
-    output [9:0] LEDR
+    output [9:0] LEDR,
+    SDRAM_interface.source sdram
 );
 
 
@@ -18,13 +19,20 @@ logic [INSTR_ADDR_W-1:0] s_if_nextpc;
 
 
 
+// Connect to the instruction memory
+s_if_instr
+instructionMemory instrMem(
+    .CLOCK_50,
+    .reset_n,
+    .read_addr          (s_if_pc),
+    .instr_value        (s_if_instr),
+    .SDRAM_connection   (sdram.receiver)
+);
+
+
+
 // Combinational Logic
 
-parameter [INSTR_ADDR_W-1:0] tester = 0;
-
-assign s_if_instr = instr_mem[r_if_pc];
-// assign s_if_instr = instr_mem[tester];
-// assign s_if_instr = 19'b0000000000010000111;
 
 
 assign s_if_nextaddr = r_if_pc + 1;

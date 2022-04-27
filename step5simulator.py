@@ -38,11 +38,13 @@ def get_needed_files(inputs_file):
         "Stages/stg_5_WB.sv",
         "Specs/specs.vh",
         "Specs/opcodes.vh",
+        "Specs/SDRAM_interface.sv",
         "Specs/enums.vh",
         "Helpers/bin2bcd.sv",
         "Helpers/clockDivider.sv",
         "Helpers/instructionDecoder.sv",
         "Helpers/registerFile.sv",
+        "Helpers/instructionMemory.sv"
         "Helpers/sevenSegToValue.sv",
         "Helpers/valueToDisplay.sv",
         "Helpers/valueToSevenSeg.sv"
