@@ -1,0 +1,7 @@
+*
+!.gitignore
+!SDRAM_Connection/*
+!SDRAM_Connection.qsys
+!LukaProcessor.qpf
+!LukaProcessor.qsf
+!LukaProcessor.sdc
