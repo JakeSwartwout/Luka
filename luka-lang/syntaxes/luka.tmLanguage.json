@@ -74,6 +74,10 @@
 				{
 					"name": "keyword.operator.logical.comparison.luka",
 					"match": "(==|!=|>=|<=|>|<)"
+				},
+				{
+					"name": "keyword.operator.logical.ifelse.luka",
+					"match": "\\b(if|else)\\b"
 				}
 			]
 		}

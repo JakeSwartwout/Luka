@@ -157,6 +157,32 @@ def comparison_type_spec(command_type, symbol):
     return Spec(command_type, comparison_type_validation, comparison_type_conversion)
 
 
+class elem_tokens(Enum):
+    scope_start = "{"
+    scope_end = "}"
+    if_symb = "if"
+    elif_symb = "elif"
+    else_symb = "else"
+
+
+def decode_line(line, prog_stack):
+    """
+    given a string representing a line, determine the correct type of elements to split it into
+    and push them onto the program description stack
+    the line could consist of multiple elements, so be sure to check and split as necessary
+    @input line: the line represented as a string to decode
+    @input prog_stack: a list of element tokens representing the program so far, to be updated in place
+    @return: none
+    """
+    pass
+"""
+maybe split up this file now? it's pretty big
+like put all of the commands stuff in their own file
+also maybe change how I decode the lines...
+rather than being recursive, do it with a stack entirely?? that's a lot, but would probably be good
+"""
+
+
 def decode_command(string):
     """
     takes in a single command in luka format and decodes what it's supposed to be in grammar format
