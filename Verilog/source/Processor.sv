@@ -1,42 +1,42 @@
 `ifndef imports
-  `include "./Helpers/clockDivider.sv"      // for reducing our clock speed
-  `include "./Helpers/registerFile.sv"
-  `include "./Specs/specs.vh"
-  `include "./Specs/SDRAM_interface.vh"
-  `include "./Specs/enums.vh"
-  `include "./Stages/stg_1_IF.sv"
-  `include "./Stages/stg_2_ID.sv"
-  `include "./Stages/stg_3_EX.sv"
-  `include "./Stages/stg_4_ME.sv"
-  `include "./Stages/stg_5_WB.sv"
+    `include "./Helpers/clockDivider.sv"      // for reducing our clock speed
+    `include "./Helpers/registerFile.sv"
+    `include "./Specs/specs.vh"
+    `include "./Specs/SDRAM_interface.sv"
+    `include "./Specs/enums.vh"
+    `include "./Stages/stg_1_IF.sv"
+    `include "./Stages/stg_2_ID.sv"
+    `include "./Stages/stg_3_EX.sv"
+    `include "./Stages/stg_4_ME.sv"
+    `include "./Stages/stg_5_WB.sv"
 `endif
 
 
 // ---  MODULE DECLARATION ---
 
 module Processor(
-	input 		          		CLOCK_50,
-  input 		     [3:0]		KEY,
-  output		     [9:0]		LEDR,
-	// 7 segment display
-	output		     [6:0]		HEX0,
-	output		     [6:0]		HEX1,
-	output		     [6:0]		HEX2,
-	output		     [6:0]		HEX3,
-	output		     [6:0]		HEX4,
-	output		     [6:0]		HEX5,
-	// SDRAM access
-	output		    [12:0]		DRAM_ADDR,
-	output		     [1:0]		DRAM_BA,
-	output		          		DRAM_CAS_N,
-	output		          		DRAM_CKE,
-	output		          		DRAM_CLK,
-	output		          		DRAM_CS_N,
-	inout 		    [15:0]		DRAM_DQ,
-	output		          		DRAM_LDQM,
-	output		          		DRAM_RAS_N,
-	output		          		DRAM_UDQM,
-	output		          		DRAM_WE_N
+    input 		          		CLOCK_50,
+    input 		     [3:0]		KEY,
+    output		     [9:0]		LEDR,
+    // 7 segment display
+    output		     [6:0]		HEX0,
+    output		     [6:0]		HEX1,
+    output		     [6:0]		HEX2,
+    output		     [6:0]		HEX3,
+    output		     [6:0]		HEX4,
+    output		     [6:0]		HEX5,
+    // SDRAM access
+    output		    [12:0]		DRAM_ADDR,
+    output		     [1:0]		DRAM_BA,
+    output		          		DRAM_CAS_N,
+    output		          		DRAM_CKE,
+    output		          		DRAM_CLK,
+    output		          		DRAM_CS_N,
+    inout 		    [15:0]		DRAM_DQ,
+    output		          		DRAM_LDQM,
+    output		          		DRAM_RAS_N,
+    output		          		DRAM_UDQM,
+    output		          		DRAM_WE_N
 );
 
 
@@ -62,16 +62,16 @@ clockDivider #( .half_divide_by(CLOCK_DIVISOR) ) clockDivider
 
 // ---  Bundling the SDRAM signals ---
 SDRAM_interface sdram(
-  sdram_clk   (DRAM_CLK)
-  addr        (DRAM_ADDR),
-  ba          (DRAM_BA),
-  cas_n       (DRAM_CAS_N),
-  cke         (DRAM_CKE),
-  cs_n        (DRAM_CS_N),
-  dq          (DRAM_DQ),
-  dqm         ({DRAM_UDQM, DRAM_LDQM}),
-  ras_n       (DRAM_RAS_N),
-  we_n        (DRAM_WE_N)
+    .sdram_clk   (DRAM_CLK),
+    .addr        (DRAM_ADDR),
+    .ba          (DRAM_BA),
+    .cas_n       (DRAM_CAS_N),
+    .cke         (DRAM_CKE),
+    .cs_n        (DRAM_CS_N),
+    .dq          (DRAM_DQ),
+    .dqm         ({DRAM_UDQM, DRAM_LDQM}),
+    .ras_n       (DRAM_RAS_N),
+    .we_n        (DRAM_WE_N)
 );
 
 
@@ -109,98 +109,96 @@ logic [VALUE_W-1:0] s_wb_wbdat;
 // --- Stage 1 - Instruction Fetch ---
 
 stg_1_IF Stage1(
-  .clock, .reset,
+    .clock, .reset,
 
-  .r_if_pc,
-  .r_id_instr,
-  .LEDR,
-  .sdram(sdram.receiver)
-  );
+    .r_if_pc,
+    .r_id_instr,
+    .LEDR,
+    .sdram(sdram.receiver)
+);
 
 
 
 // --- Stage 2 - Instruction Decode ---
 
 stg_2_ID Stage2(
-  .clock, .reset,
-  .r_id_instr,
+    .clock, .reset,
+    .r_id_instr,
 
-  .r_ex_aluop,
-  .s_id_rs1,
-  .s_id_rs2,
-  .r_ex_rd,
-  .r_ex_imm,
-  .r_ex_RegWrite,
-  .r_ex_PrintValue
-  );
+    .r_ex_aluop,
+    .s_id_rs1,
+    .s_id_rs2,
+    .r_ex_rd,
+    .r_ex_imm,
+    .r_ex_RegWrite,
+    .r_ex_PrintValue
+);
 
 
 
 // --- Stage 3 - Execute ---
 
 stg_3_EX Stage3(
-  .clock, .reset,
-  .r_ex_aluop,
-  .r_ex_read1,
-  .r_ex_read2,
-  .r_ex_rd,
-  .r_ex_imm,
-  .r_ex_RegWrite,
-  .r_ex_PrintValue,
+    .clock, .reset,
+    .r_ex_aluop,
+    .r_ex_read1,
+    .r_ex_read2,
+    .r_ex_rd,
+    .r_ex_imm,
+    .r_ex_RegWrite,
+    .r_ex_PrintValue,
 
-  .r_me_rd,
-  .r_me_aluout,
-  .r_me_aluzero,
-  .r_me_RegWrite,
-  .r_me_PrintValue
-  );
+    .r_me_rd,
+    .r_me_aluout,
+    .r_me_aluzero,
+    .r_me_RegWrite,
+    .r_me_PrintValue
+);
 
 
 
 // --- Stage 4 - Memory ---
 
 stg_4_ME Stage4(
-  .clock, .reset,
-  .r_me_rd,
-  .r_me_aluout,
-  .r_me_aluzero,
-  .r_me_RegWrite,
-  .r_me_PrintValue,
+    .clock, .reset,
+    .r_me_rd,
+    .r_me_aluout,
+    .r_me_aluzero,
+    .r_me_RegWrite,
+    .r_me_PrintValue,
 
-  .r_wb_aluout,
-  .r_wb_rd,
-  .r_wb_RegWrite,
-  .HEX0, .HEX1, .HEX2, .HEX3, .HEX4, .HEX5
-  );
+    .r_wb_aluout,
+    .r_wb_rd,
+    .r_wb_RegWrite,
+    .HEX0, .HEX1, .HEX2, .HEX3, .HEX4, .HEX5
+);
 
 
 
 // --- Stage 5 - Writeback ---
 
 stg_5_WB Stage5(
-  .clock, .reset,
-  .r_wb_aluout,
-  .r_wb_rd,
-  .r_wb_RegWrite,
+    .clock, .reset,
+    .r_wb_aluout,
+    .r_wb_rd,
+    .r_wb_RegWrite,
 
-  .s_wb_wbdat
-  );
-
+    .s_wb_wbdat
+);
 
 
 // --- Connect both ID and WB into the regsiter file
 
 // register fetch
 registerFile rf(
-  .clock,
-  .reset,
-  .rs1(s_id_rs1),
-  .rs2(s_id_rs2),
-  .rd(r_wb_rd),
-  .writeData(s_wb_wbdat),
-  .RegWrite(r_wb_RegWrite),
-  .read1(r_ex_read1),
-  .read2(r_ex_read2)
+    .clock, .reset,
+    .rs1(s_id_rs1),
+    .rs2(s_id_rs2),
+    .rd(r_wb_rd),
+    .writeData(s_wb_wbdat),
+    .RegWrite(r_wb_RegWrite),
+    .read1(r_ex_read1),
+    .read2(r_ex_read2)
 );
 
 

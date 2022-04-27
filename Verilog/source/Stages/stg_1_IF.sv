@@ -20,7 +20,6 @@ logic [INSTR_ADDR_W-1:0] s_if_nextpc;
 
 
 // Connect to the instruction memory
-s_if_instr
 instructionMemory instrMem(
     .CLOCK_50,
     .reset_n,

@@ -1,6 +1,6 @@
 // connects up to the SDRAM to read instructions from memory
 `ifndef imports
-    `include "./Specs/SDRAM_interface.sv"
+    `include "../Specs/SDRAM_interface.sv"
 `endif
 
 module instructionMemory(
@@ -9,7 +9,7 @@ module instructionMemory(
     input read_addr,
     output instr_value,
     SDRAM_interface.source sdram
-)
+);
 
 
 // figure out what to do with the read_addr???

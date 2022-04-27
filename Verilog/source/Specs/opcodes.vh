@@ -1,5 +1,4 @@
-`ifndef opcodes
-`define opcodes
+`ifndef OPCODES
 
 parameter OPTYPE_W = 3; // how many bits to describe the type of instruction
 parameter OPCODE_add = 001;
@@ -14,4 +13,5 @@ parameter OPCODE_prnt = 111;
 parameter FN3_prnt = 0;
 parameter OPCODE_prnti = 000;
 
+`define OPCODES
 `endif

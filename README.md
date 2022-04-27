@@ -42,9 +42,9 @@ Just stores it as a txt for simplicity sake, technically just binary data now.
 
 ### Step 4: Processor
 
-Only needs to be done once.
+Digital Logic (.sv) -> Board Programmer (.sof)
 
-Compiles the processor and downloads it to the board.
+Compiles the processor and downloads it to the board. Needs to be done new for each program to know how long the program is.
 
 Works with quartus, so that needs to be installed and the commands added to the Path environment.
 Also needs a CDF to be generated, so may need to open quartus and set up the programmer first, depending on your specific board setup.
