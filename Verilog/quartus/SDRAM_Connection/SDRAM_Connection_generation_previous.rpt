@@ -1,0 +1,42 @@
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate "C:\Users\Jake\Documents\CU Junior Year\Luka\Verilog\quartus\SDRAM_Connection.qsys" --synthesis=VERILOG --output-directory="C:\Users\Jake\Documents\CU Junior Year\Luka\Verilog\quartus\SDRAM_Connection\synthesis" --family="Cyclone V" --part=5CSXFC6D6F31C6
+Progress: Loading quartus/SDRAM_Connection.qsys
+Progress: Reading input file
+Progress: Adding clk_0 [clock_source 20.1]
+Progress: Parameterizing module clk_0
+Progress: Adding jtag_master [altera_jtag_avalon_master 20.1]
+Progress: Parameterizing module jtag_master
+Progress: Adding pll_sdram_clk [altera_pll 20.1]
+Progress: Parameterizing module pll_sdram_clk
+Progress: Adding sdram_controller [altera_avalon_new_sdram_controller 20.1]
+Progress: Parameterizing module sdram_controller
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: SDRAM_Connection.pll_sdram_clk: The legal reference clock frequency is 5.0 MHz..800.0 MHz
+Warning: SDRAM_Connection.pll_sdram_clk: Able to implement PLL - Actual settings differ from Requested settings
+Info: SDRAM_Connection.sdram_controller: SDRAM Controller will only be supported in Quartus Prime Standard Edition in the future release.
+Info: SDRAM_Connection: Generating SDRAM_Connection "SDRAM_Connection" for QUARTUS_SYNTH
+Info: Interconnect is inserted between master jtag_master.master and slave sdram_controller.s1 because the master has address signal 32 bit wide, but the slave is 23 bit wide.
+Info: jtag_master: "SDRAM_Connection" instantiated altera_jtag_avalon_master "jtag_master"
+Info: pll_sdram_clk: "SDRAM_Connection" instantiated altera_pll "pll_sdram_clk"
+Info: sdram_controller: Starting RTL generation for module 'SDRAM_Connection_sdram_controller'
+Info: sdram_controller:   Generation command is [exec C:/intelfpga/20.1/quartus/bin64/perl/bin/perl.exe -I C:/intelfpga/20.1/quartus/bin64/perl/lib -I C:/intelfpga/20.1/quartus/sopc_builder/bin/europa -I C:/intelfpga/20.1/quartus/sopc_builder/bin -I C:/intelfpga/20.1/quartus/../ip/altera/sopc_builder_ip/common -I C:/intelfpga/20.1/quartus/../ip/altera/sopc_builder_ip/altera_avalon_new_sdram_controller -- C:/intelfpga/20.1/quartus/../ip/altera/sopc_builder_ip/altera_avalon_new_sdram_controller/generate_rtl.pl --name=SDRAM_Connection_sdram_controller --dir=C:/Users/Jake/AppData/Local/Temp/alt9109_7334303720006148715.dir/0003_sdram_controller_gen/ --quartus_dir=C:/intelfpga/20.1/quartus --verilog --config=C:/Users/Jake/AppData/Local/Temp/alt9109_7334303720006148715.dir/0003_sdram_controller_gen//SDRAM_Connection_sdram_controller_component_configuration.pl  --do_build_sim=0  ]
+Info: sdram_controller: Done RTL generation for module 'SDRAM_Connection_sdram_controller'
+Info: sdram_controller: "SDRAM_Connection" instantiated altera_avalon_new_sdram_controller "sdram_controller"
+Info: mm_interconnect_0: "SDRAM_Connection" instantiated altera_mm_interconnect "mm_interconnect_0"
+Info: rst_controller: "SDRAM_Connection" instantiated altera_reset_controller "rst_controller"
+Info: jtag_phy_embedded_in_jtag_master: "jtag_master" instantiated altera_jtag_dc_streaming "jtag_phy_embedded_in_jtag_master"
+Info: timing_adt: "jtag_master" instantiated timing_adapter "timing_adt"
+Info: fifo: "jtag_master" instantiated altera_avalon_sc_fifo "fifo"
+Info: b2p: "jtag_master" instantiated altera_avalon_st_bytes_to_packets "b2p"
+Info: p2b: "jtag_master" instantiated altera_avalon_st_packets_to_bytes "p2b"
+Info: transacto: "jtag_master" instantiated altera_avalon_packets_to_master "transacto"
+Info: b2p_adapter: "jtag_master" instantiated channel_adapter "b2p_adapter"
+Info: p2b_adapter: "jtag_master" instantiated channel_adapter "p2b_adapter"
+Info: jtag_master_master_translator: "mm_interconnect_0" instantiated altera_merlin_master_translator "jtag_master_master_translator"
+Info: sdram_controller_s1_translator: "mm_interconnect_0" instantiated altera_merlin_slave_translator "sdram_controller_s1_translator"
+Info: SDRAM_Connection: Done "SDRAM_Connection" with 16 modules, 29 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis
