@@ -13,29 +13,28 @@ module registerFile(
     output reg [VALUE_W-1:0] read1, read2
 );
 
-logic [REG_ADDR_W-1:0][VALUE_W-1:0] registers;
+// Connect up to a RAM memory
+// quartus doesn't have a 3 port one, so need one for (RD in, RS1 out) and one for (RD in, RS2 out)
+// this way, both get the same new data on the falling edge, then both can clock out their own selection for reading on rising edge
+RegisterRam ram_for_rs1(
+	.data       (writeData),
+	.rdaddress  (rs1),
+	.rdclock    (clock), // read on the rising edge
+	.wraddress  (rd),
+	.wrclock    (~clock), // write on the falling edge
+	.wren       (RegWrite),
+	.q          (read1)
+);
 
-// always reads
-// only writes if RegWrite, and writes first so that read can get values
-always_ff @ (posedge clock, negedge clock, negedge reset_n) begin
-    if (~reset_n)
-        registers = 0;
-    else if (clock) begin // rising edge - read
-        // reading
-        read1 = registers[rs1];
-        read2 = registers[rs2];
-    end else if (~clock) // falling edge - write
-        if (RegWrite & (rd != 0))
-            registers[rd] = writeData;
-end
-
-// see digital logic HW week 12 for how to use the Max-10 Lite ROM
-// probably can do a similar `ifdef Sim to do quartus vs simulation
-// // Connect to our memory, putting displays directly onto HEX0
-// ROM memory(	.address(counter),
-// 				.clock(KEY[1]),
-// 				.q(HEX0)
-// );
+RegisterRam ram_for_rs2(
+	.data       (writeData),
+	.rdaddress  (rs2),
+	.rdclock    (clock), // read on the rising edge
+	.wraddress  (rd),
+	.wrclock    (~clock), // write on the falling edge
+	.wren       (RegWrite),
+	.q          (read2)
+);
 
 endmodule
 

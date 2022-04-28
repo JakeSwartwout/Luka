@@ -2,6 +2,9 @@
 !.gitignore
 !SDRAM_Connection/*
 !SDRAM_Connection.qsys
+!RegisterRam.v
+!RegisterRam.qip
+!RegisterRam_bb.v
 !LukaProcessor.qpf
 !LukaProcessor.qsf
 !LukaProcessor.sdc
