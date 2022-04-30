@@ -9,3 +9,6 @@ LukaProcessor*
 !LukaProcessor.sdc
 !LukaProcessor.sof
 !LukaProcessor.cdf
+simulation/modelsim/*
+!simulation/modelsim/wave.do
+!simulation/modelsim/LukaProcessor_run_msim_rtl_verilog.do

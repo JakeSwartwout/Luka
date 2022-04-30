@@ -7,6 +7,8 @@
     `include "./Helpers/sevenSegToValue.sv"
 `endif
 
+`define SIMULATION
+
 module Simulator();
 
 // set up our clock
@@ -15,18 +17,30 @@ initial base_clock = 1'b0;
 always #1 base_clock = !base_clock;
 
 // when to start/restart the program (active low)
-logic restart;
+logic restart_n;
 // 6 hex displays
-logic [7:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+
 
 // connect up to the processor
-Processor #( .CLOCK_DIVISOR(1) ) processor(
-                    .ADC_CLK_10(base_clock),
-                    .KEY({1'b0, restart}),
-                    .SW(),
-                    .HEX0, .HEX1, .HEX2, .HEX3, .HEX4, .HEX5,
-                    .LEDR()
-                    );
+Processor processor(
+        .CLOCK_50   (base_clock),
+        .KEY        ({1'b0, restart_n}),
+        .HEX0, .HEX1, .HEX2, .HEX3, .HEX4, .HEX5,
+        // don't bother to hook these things up
+        .LEDR       (),
+        .DRAM_ADDR  (),
+        .DRAM_BA    (),
+        .DRAM_CAS_N (),
+        .DRAM_CKE   (),
+        .DRAM_CLK   (),
+        .DRAM_CS_N  (),
+        .DRAM_DQ    (),
+        .DRAM_LDQM  (),
+        .DRAM_RAS_N (),
+        .DRAM_UDQM  (),
+        .DRAM_WE_N  ()
+    );
 
 // convert our hex displays to actual values
 logic [5:0][3:0] dispValues;
@@ -44,15 +58,13 @@ initial
 
 initial
     begin
-        $dumpfile("../output/simulation.vcd");
-        $dumpvars;
         $display("Built by: Jake Swartwout");
-            restart = 1;
-        #1  restart = 0;
-        #1  restart = 1;
+            restart_n = 1;
+        #1  restart_n = 0;
+        #1  restart_n = 1;
         #80
         $display("Simulation ended");
-        $finish;
+        $stop;
     end
 
 endmodule

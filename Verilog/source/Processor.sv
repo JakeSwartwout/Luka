@@ -52,13 +52,21 @@ assign reset_n = KEY[0];
 
 logic sys_clock;
 
-// 50 MHz = 50000000 Hz
-// half divisor of 50000000 = 1/2 Hz output, cycle once every 2 seconds
-clockDivider #( .half_divide_by (50_000_000) ) clockDivider 
-              ( .clock_in       (CLOCK_50),
-                .reset_n,
-                .clock_out      (sys_clock)
+`ifdef SIMULATION
+    clockDivider #( .half_divide_by (1) ) clk_div(
+        .clock_in       (CLOCK_50),
+        .reset_n,
+        .clock_out      (sys_clock)
 );
+`else
+    // 50 MHz = 50000000 Hz
+    // half divisor of 50000000 = 1/2 Hz output, cycle once every 2 seconds
+    clockDivider #( .half_divide_by (50_000_000) ) clk_div(
+        .clock_in       (CLOCK_50),
+        .reset_n,
+        .clock_out      (sys_clock)
+);
+`endif
 
 
 
@@ -101,6 +109,7 @@ logic r_me_PrintValue;
 // ME stage
 logic [REG_ADDR_W-1:0] r_wb_rd;
 logic [VALUE_W-1:0] r_wb_aluout;
+logic r_wb_RegWrite;
 
 // WB stage
 logic [VALUE_W-1:0] s_wb_wbdat;
