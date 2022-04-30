@@ -1,3 +1,5 @@
+`ifndef BIN2BCD
+
 /*  This module is some strange code that will take a 16 bit binary input 
     and output 4 BCD values (0000 - 9999).
     Seems like magic, and using loops is not recommended, but it works. 
@@ -31,3 +33,6 @@ always @ (*)
     end
 
 endmodule
+
+`define BIN2BCD
+`endif

@@ -1,3 +1,5 @@
+`ifndef CLOCK_DIVIDER
+
 // takes an input clock signal and divides it by some parameter value (slows it down)
 module clockDivider(input clock_in, reset_n, output reg clock_out);
 parameter half_divide_by = 0;
@@ -23,3 +25,6 @@ always_ff @ (posedge clock_in, negedge reset_n)
             end
 
 endmodule
+
+`define CLOCK_DIVIDER
+`endif

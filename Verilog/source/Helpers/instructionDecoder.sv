@@ -1,3 +1,5 @@
+`ifndef INSTRUCTION_DECODER
+
 // decodes an incoming exception into the necessary registers, signals, immediate, etc
 `ifndef imports
     `include "../Specs/specs.vh"
@@ -133,3 +135,6 @@ always_comb begin
 end
 
 endmodule
+
+`define INSTRUCTION_DECODER
+`endif

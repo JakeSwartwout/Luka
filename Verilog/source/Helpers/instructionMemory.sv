@@ -1,3 +1,5 @@
+`ifndef INSTRUCTION_MEMORY
+
 // connects up to the SDRAM to read instructions from memory
 `ifndef imports
     `include "../Specs/SDRAM_interface.sv"
@@ -36,3 +38,6 @@ SDRAM_Connection sdram_controller (
 );
 
 endmodule
+
+`define INSTRUCTION_MEMORY
+`endif

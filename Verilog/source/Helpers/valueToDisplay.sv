@@ -1,3 +1,5 @@
+`ifndef VALUE_TO_DISPLAY
+
 // takes in a value and outputs the result to an entire display of 6 x 7-segment displays
 
 `ifndef imports
@@ -71,3 +73,6 @@ assign HEX5 = isNeg? 7'b011_1111 : HEX_OFF;
 
 
 endmodule
+
+`define VALUE_TO_DISPLAY
+`endif
